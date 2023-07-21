@@ -5,7 +5,10 @@ import { useMangrove } from "../contexts/mangrove";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+// lucide-react
 import { Loader2 } from "lucide-react";
+// notistack
+import { enqueueSnackbar } from "notistack";
 
 const Post = () => {
     const { mangrove, pair } = useMangrove();
@@ -41,9 +44,12 @@ const Post = () => {
             });
             setLoading(false);
             resetForm();
+            enqueueSnackbar(`${pair.base} Offer posted with success`, {
+                variant: "success",
+            });
         } catch (error) {
             setLoading(false);
-            console.log(error);
+            enqueueSnackbar("Transaction failed", { variant: "error" });
         }
     };
 
@@ -67,7 +73,7 @@ const Post = () => {
                 </div>
                 <div className="flex flex-col w-full md:flex-row">
                     <Label htmlFor="amount-wanted" className="m-2">
-                        Amount wished
+                        Amount wanted
                     </Label>
                     <Input
                         type="text"

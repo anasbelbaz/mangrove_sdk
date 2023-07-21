@@ -9,6 +9,7 @@ import { configureChains, createConfig, WagmiConfig } from "wagmi";
 import { polygonMumbai, localhost } from "wagmi/chains";
 import { Home } from "./pages";
 import MangroveProvider from "./contexts/mangrove";
+import { SnackbarProvider } from "notistack";
 
 /**
  * Wallet connect
@@ -34,6 +35,7 @@ function App() {
                 projectId={projectId as string}
                 ethereumClient={ethereumClient}
             />
+            <SnackbarProvider autoHideDuration={5000} />
             <MangroveProvider>
                 <Home />
             </MangroveProvider>

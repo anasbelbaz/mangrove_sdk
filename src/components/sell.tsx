@@ -11,7 +11,10 @@ import { erc20ABI, useContractRead } from "wagmi";
 import { formatUnits } from "viem";
 // utils
 import tokenList from "../utils/tokens/mangrove-tokens.json";
+// lucide-react
 import { Loader2 } from "lucide-react";
+// notistack
+import { enqueueSnackbar } from "notistack";
 
 const Sell = () => {
     const { mangrove, pair } = useMangrove();
@@ -24,10 +27,12 @@ const Sell = () => {
         setWants("");
     };
 
+    const tokenMemo = React.useMemo(() => {
+        return tokenList.find((token) => token.symbol === pair.base);
+    }, [tokenList]);
+
     const { data: decimals } = useContractRead({
-        address:
-            (tokenList.find((token) => token.symbol === pair.base)
-                ?.address as `0x`) || `0x`,
+        address: tokenMemo?.address as `0x`,
         abi: erc20ABI,
         functionName: "decimals",
     });
@@ -45,10 +50,12 @@ const Sell = () => {
             await buyPromises.result;
             setLoading(false);
             resetForm();
+            enqueueSnackbar(`${pair.base} sold with success`, {
+                variant: "success",
+            });
         } catch (error) {
             setLoading(false);
-
-            console.log(error);
+            enqueueSnackbar("Transaction failed", { variant: "error" });
         }
     };
 
@@ -72,7 +79,7 @@ const Sell = () => {
                 ).substring(0, 10)
             );
         } catch (error) {
-            console.log(error);
+            enqueueSnackbar("Could not estimate volume", { variant: "error" });
         }
     };
 
@@ -96,7 +103,7 @@ const Sell = () => {
                 ).substring(0, 10)
             );
         } catch (error) {
-            console.log(error);
+            enqueueSnackbar("Could not estimate volume", { variant: "error" });
         }
     };
 

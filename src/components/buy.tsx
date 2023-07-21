@@ -1,7 +1,7 @@
 import React from "react";
 // shadcn
 import { Button } from "./ui/button";
-
+import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 // context
 import { useMangrove } from "../contexts/mangrove";
@@ -10,9 +10,10 @@ import tokenList from "../utils/tokens/mangrove-tokens.json";
 import { erc20ABI, useContractRead } from "wagmi";
 // viem
 import { formatUnits } from "viem";
-import { Label } from "./ui/label";
+// lucide-react
 import { Loader2 } from "lucide-react";
-import AlertCustom from "./alert-custom";
+// notistack
+import { enqueueSnackbar } from "notistack";
 
 const Buy = () => {
     const { mangrove, pair } = useMangrove();
@@ -20,10 +21,12 @@ const Buy = () => {
     const [wants, setWants] = React.useState<string>("");
     const [loading, setLoading] = React.useState<boolean>(false);
 
+    const tokenMemo = React.useMemo(() => {
+        return tokenList.find((token) => token.symbol === pair.base);
+    }, [tokenList]);
+
     const { data: decimals } = useContractRead({
-        address:
-            (tokenList.find((token) => token.symbol === pair.base)
-                ?.address as `0x`) || `0x`,
+        address: tokenMemo?.address as `0x`,
         abi: erc20ABI,
         functionName: "decimals",
     });
@@ -42,14 +45,17 @@ const Buy = () => {
             const buyPromises = await market.buy({
                 wants,
                 gives,
-                slippage: 2, //TODO@Anas: add slippage input in order to dynamise this value
+                slippage: 2, //TODO@Anas: add slippage input in order to dynamise its value
             });
             await buyPromises.result;
             setLoading(false);
             resetForm();
+            enqueueSnackbar(`${pair.base} Bought with success`, {
+                variant: "success",
+            });
         } catch (error) {
             setLoading(false);
-            console.log(error);
+            enqueueSnackbar("Transaction failed", { variant: "error" });
         }
     };
 
@@ -73,7 +79,7 @@ const Buy = () => {
                 ).substring(0, 10)
             );
         } catch (error) {
-            console.log(error);
+            enqueueSnackbar("Could not estimate volume", { variant: "error" });
         }
     };
 
@@ -97,7 +103,7 @@ const Buy = () => {
                 ).substring(0, 10)
             );
         } catch (error) {
-            console.log(error);
+            enqueueSnackbar("Could not estimate volume", { variant: "error" });
         }
     };
 
@@ -120,7 +126,7 @@ const Buy = () => {
             </div>
             <div className="flex flex-col w-full md:flex-row">
                 <Label htmlFor="amount-given" className="m-2">
-                    Send Amount
+                    Paid Amount
                 </Label>
                 <Input
                     type="text"
