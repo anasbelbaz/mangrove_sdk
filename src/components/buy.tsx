@@ -125,8 +125,6 @@ const Buy = () => {
         gives && wants && resetForm();
     }, [pair]);
 
-    console.log(tokenBalance, Number(gives));
-
     return (
         <div className="flex flex-col md:flex-row md:space-x-4 justify-between mt-2">
             <div className="flex flex-col w-full md:flex-row">
