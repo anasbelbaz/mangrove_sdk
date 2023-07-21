@@ -96,9 +96,9 @@ const Post = () => {
             </div>
             <div className="flex justify-center  text-green-500 md:w-auto mt-4 mt-1">
                 <span>
-                    {wants && gives
-                        ? `Price: ${Number(wants) / Number(gives)}`
-                        : ""}
+                    {wants &&
+                        gives &&
+                        `Price: ${(Number(wants) / Number(gives)).toFixed(8)}`}
                 </span>
             </div>
         </div>
