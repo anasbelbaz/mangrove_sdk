@@ -12,6 +12,7 @@ import { erc20ABI, useContractRead } from "wagmi";
 import { formatUnits } from "viem";
 import { Label } from "./ui/label";
 import { Loader2 } from "lucide-react";
+import AlertCustom from "./alert-custom";
 
 const Buy = () => {
     const { mangrove, pair } = useMangrove();
@@ -41,7 +42,7 @@ const Buy = () => {
             const buyPromises = await market.buy({
                 wants,
                 gives,
-                slippage: 2,
+                slippage: 2, //TODO@Anas: add slippage input in order to dynamise this value
             });
             await buyPromises.result;
             setLoading(false);
