@@ -11,7 +11,12 @@ import {
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 // wagmi
-import { useContractWrite, useContractReads, useAccount } from "wagmi";
+import {
+    useContractWrite,
+    useContractReads,
+    useAccount,
+    useWaitForTransaction,
+} from "wagmi";
 // web3modal
 import { useWeb3Modal } from "@web3modal/react";
 // utils
@@ -19,10 +24,18 @@ import tokens from "../utils/tokens/mangrove-tokens.json";
 import erc20_abi from "../utils/tokens/abi.json";
 // viewm
 import { formatUnits, parseUnits } from "viem";
+// notistack
+import { enqueueSnackbar } from "notistack";
+// lucide-react
+import { Loader2 } from "lucide-react";
 
 const MintFaucet = () => {
     const [token, SetToken] = React.useState<string>("");
     const [amount, setAmount] = React.useState<string>("0");
+    const [loading, setLoading] = React.useState<boolean>(false);
+
+    const { open } = useWeb3Modal();
+    const { isConnected } = useAccount();
 
     const formatContractReads = (data: any) => {
         if (data && data[0].status === "success") {
@@ -78,10 +91,27 @@ const MintFaucet = () => {
         enabled: !!token,
     });
 
-    const { write } = useContractWrite({
+    const { data: mintResponse, write } = useContractWrite({
         address: token as `0x`,
         abi: erc20_abi,
         functionName: "mint",
+        onError() {
+            enqueueSnackbar("Transaction failed", { variant: "error" });
+        },
+    });
+
+    useWaitForTransaction({
+        hash: mintResponse?.hash,
+        onSettled(d, error) {
+            setLoading(false);
+            if (error) {
+                enqueueSnackbar(error.message, { variant: "error" });
+            } else {
+                enqueueSnackbar(`Tokens successfully minted`, {
+                    variant: "success",
+                });
+            }
+        },
     });
 
     const { decimals, mintLimit } = data
@@ -89,11 +119,9 @@ const MintFaucet = () => {
         : { decimals: 0, mintLimit: "0" };
 
     const mintToken = () => {
-        data && write?.({ args: [parseUnits(amount, decimals)] });
+        setLoading(true);
+        write?.({ args: [parseUnits(amount, decimals)] });
     };
-
-    const { open } = useWeb3Modal();
-    const { isConnected } = useAccount();
 
     return (
         <div className="flex flex-col md:flex-row md:space-x-2 justify-between mt-2">
@@ -140,10 +168,14 @@ const MintFaucet = () => {
                 <Button
                     onClick={isConnected ? mintToken : open}
                     disabled={
-                        Number(mintLimit) - Number(amount) >= Number(mintLimit)
+                        Number(mintLimit) - Number(amount) >=
+                            Number(mintLimit) || loading
                     }
                     className="w-full"
                 >
+                    {loading && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
                     Mint
                 </Button>
             </div>
