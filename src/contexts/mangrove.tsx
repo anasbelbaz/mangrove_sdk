@@ -60,12 +60,6 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
             const market = await mgv.market(pair);
             const book = market.getBook();
             setBook(book);
-
-            ///////// testing
-            const askState = book.asks.getLatestState();
-            const bidState = book.bids.getLatestState();
-            console.log([...askState.offerCache], bidState, book);
-            /////////
         } catch (error) {
             console.log(error);
         }
