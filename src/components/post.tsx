@@ -9,35 +9,12 @@ import { Label } from "./ui/label";
 import { Loader2 } from "lucide-react";
 // notistack
 import { enqueueSnackbar } from "notistack";
-import { formatUnits } from "viem";
-import { erc20ABI, useAccount, useContractRead } from "wagmi";
-//  utils
-import tokenList from "../utils/tokens/mangrove-tokens.json";
-import erc20_abi from "../utils/tokens/abi.json";
 
 const Post = () => {
-    const { mangrove, pair } = useMangrove();
+    const { mangrove, pair, balance } = useMangrove();
     const [gives, setGives] = React.useState<string>("");
     const [wants, setWants] = React.useState<string>("");
     const [loading, setLoading] = React.useState<boolean>(false);
-    const { address } = useAccount();
-
-    const tokenAddress = React.useMemo(() => {
-        return tokenList.find((token) => token.symbol === pair.base)?.address;
-    }, [pair]);
-
-    const { data: decimals } = useContractRead({
-        address: tokenAddress as `0x`,
-        abi: erc20ABI,
-        functionName: "decimals",
-    });
-
-    const { data: balance } = useContractRead({
-        address: tokenAddress as `0x`,
-        abi: erc20_abi,
-        functionName: "balanceOf",
-        args: [address],
-    });
 
     const resetForm = () => {
         setGives("");
@@ -76,11 +53,6 @@ const Post = () => {
         }
     };
 
-    const tokenBalance =
-        balance && decimals
-            ? Number(formatUnits(balance as bigint, decimals))
-            : 0;
-
     React.useEffect(() => {
         gives && wants && resetForm();
     }, [pair]);
@@ -95,7 +67,7 @@ const Post = () => {
                     <Input
                         type="text"
                         className={`${
-                            Number(gives) > tokenBalance
+                            Number(gives) > balance
                                 ? "border-2 border-red-500"
                                 : ""
                         }`}
@@ -122,7 +94,7 @@ const Post = () => {
                             !wants ||
                             !gives ||
                             loading ||
-                            Number(gives) > tokenBalance
+                            Number(gives) > balance
                         }
                     >
                         {loading && (

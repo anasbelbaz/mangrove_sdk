@@ -5,46 +5,23 @@ import { useMangrove } from "../contexts/mangrove";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-// wagmi
-import { erc20ABI, useAccount, useContractRead } from "wagmi";
 // viem
 import { formatUnits } from "viem";
-//  utils
-import tokenList from "../utils/tokens/mangrove-tokens.json";
-import erc20_abi from "../utils/tokens/abi.json";
 // lucide-react
 import { Loader2 } from "lucide-react";
 // notistack
 import { enqueueSnackbar } from "notistack";
 
 const Sell = () => {
-    const { mangrove, pair } = useMangrove();
+    const { mangrove, pair, balance, decimals } = useMangrove();
     const [gives, setGives] = React.useState<string>("");
     const [wants, setWants] = React.useState<string>("");
     const [loading, setLoading] = React.useState<boolean>(false);
-    const { address } = useAccount();
 
     const resetForm = () => {
         setGives("");
         setWants("");
     };
-
-    const tokenAddress = React.useMemo(() => {
-        return tokenList.find((token) => token.symbol === pair.base)?.address;
-    }, [pair]);
-
-    const { data: decimals } = useContractRead({
-        address: tokenAddress as `0x`,
-        abi: erc20ABI,
-        functionName: "decimals",
-    });
-
-    const { data: balance } = useContractRead({
-        address: tokenAddress as `0x`,
-        abi: erc20_abi,
-        functionName: "balanceOf",
-        args: [address],
-    });
 
     const sell = async () => {
         try {
@@ -116,11 +93,6 @@ const Sell = () => {
         }
     };
 
-    const tokenBalance =
-        balance && decimals
-            ? Number(formatUnits(balance as bigint, decimals))
-            : 0;
-
     React.useEffect(() => {
         gives && wants && resetForm();
     }, [pair]);
@@ -133,9 +105,7 @@ const Sell = () => {
                 </Label>
                 <Input
                     className={`${
-                        Number(gives) > tokenBalance
-                            ? "border-2 border-red-500"
-                            : ""
+                        Number(gives) > balance ? "border-2 border-red-500" : ""
                     }`}
                     type="text"
                     id="amount-given"
@@ -161,10 +131,7 @@ const Sell = () => {
                 <Button
                     onClick={sell}
                     disabled={
-                        !wants ||
-                        !gives ||
-                        loading ||
-                        Number(gives) > tokenBalance
+                        !wants || !gives || loading || Number(gives) > balance
                     }
                 >
                     {loading && (

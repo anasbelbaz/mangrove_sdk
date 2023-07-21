@@ -4,22 +4,28 @@ import { useEthersSigner } from "../hooks/adapter";
 // mangrove
 import { Mangrove, Market } from "@mangrovedao/mangrove.js";
 // wagmi
-import { useAccount } from "wagmi";
+import { erc20ABI, useAccount, useContractRead } from "wagmi";
 // types
 import { Pair } from "../types";
+// utils
+import tokenList from "../utils/tokens/mangrove-tokens.json";
+import erc20_abi from "../utils/tokens/abi.json";
+import { formatUnits } from "viem";
 
 type ContextValues = {
     mangrove: Mangrove | undefined;
-    book: Market.Book | undefined;
     pair: Pair;
     checkMarket: () => void;
     setPair: (pair: Pair) => void;
+    decimals: number;
+    balance: number;
 };
 
 const defaultValues: ContextValues = {
     mangrove: undefined,
-    book: undefined,
     pair: { base: "WETH", quote: "USDC" },
+    decimals: 0,
+    balance: 0,
     checkMarket: () => null,
     setPair: () => null,
 };
@@ -28,15 +34,29 @@ const MangroveContext = React.createContext(defaultValues);
 export const useMangrove = () => React.useContext(MangroveContext);
 
 const MangroveProvider = ({ children }: React.PropsWithChildren) => {
-    const { isConnected } = useAccount();
+    const { isConnected, address } = useAccount();
 
-    const [mangrove, setMangrove] = React.useState<Mangrove | undefined>(
-        undefined
-    );
-    const [book, setBook] = React.useState<Market.Book | undefined>(undefined);
+    const [mangrove, setMangrove] = React.useState<Mangrove | undefined>();
     const [pair, setPair] = React.useState<Pair>({
         base: "USDC",
         quote: "USDT",
+    });
+
+    const tokenAddress = React.useMemo(() => {
+        return tokenList.find((token) => token.symbol === pair.base)?.address;
+    }, [pair]);
+
+    const { data: decimals } = useContractRead({
+        address: tokenAddress as `0x`,
+        abi: erc20ABI,
+        functionName: "decimals",
+    });
+
+    const { data: balance } = useContractRead({
+        address: tokenAddress as `0x`,
+        abi: erc20_abi,
+        functionName: "balanceOf",
+        args: [address],
     });
 
     const signer = useEthersSigner();
@@ -49,17 +69,6 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
             });
 
             setMangrove(mgv);
-            await getBook(mgv);
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    const getBook = async (mgv: Mangrove) => {
-        try {
-            const market = await mgv.market(pair);
-            const book = market.getBook();
-            setBook(book);
         } catch (error) {
             console.log(error);
         }
@@ -82,7 +91,15 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
 
     return (
         <MangroveContext.Provider
-            value={{ pair, setPair, mangrove, book, checkMarket }}
+            value={{
+                pair,
+                setPair,
+                mangrove,
+                decimals: decimals || 0,
+                balance:
+                    Number(formatUnits(balance as bigint, decimals || 0)) || 0,
+                checkMarket,
+            }}
         >
             {children}
         </MangroveContext.Provider>
