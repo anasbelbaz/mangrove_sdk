@@ -26,14 +26,11 @@ const Post = () => {
 
             const directLP = await mangrove.liquidityProvider(market);
 
-            // In order to post an ask, signer needs to approve Mangrove for transfer of base token which
-            // will be transferred from the wallet to Mangrove and then to the taker when the offer is taken.
             const tx = await market.base.approve(mangrove.address, {
                 amount: gives,
             });
             await tx.wait();
 
-            // Query mangrove to know the bounty for posting a new Ask on `market`
             const fund = await directLP.computeAskProvision();
 
             // Post a new ask
