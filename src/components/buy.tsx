@@ -7,28 +7,38 @@ import { Input } from "./ui/input";
 import { useMangrove } from "../contexts/mangrove";
 import tokenList from "../utils/tokens/mangrove-tokens.json";
 // wagmi
-import { erc20ABI, useContractRead } from "wagmi";
+import { erc20ABI, useAccount, useContractRead } from "wagmi";
 // viem
 import { formatUnits } from "viem";
 // lucide-react
 import { Loader2 } from "lucide-react";
 // notistack
 import { enqueueSnackbar } from "notistack";
+//  utils
+import erc20_abi from "../utils/tokens/abi.json";
 
 const Buy = () => {
     const { mangrove, pair } = useMangrove();
     const [gives, setGives] = React.useState<string>("");
     const [wants, setWants] = React.useState<string>("");
     const [loading, setLoading] = React.useState<boolean>(false);
+    const { address } = useAccount();
 
-    const tokenMemo = React.useMemo(() => {
-        return tokenList.find((token) => token.symbol === pair.base);
-    }, [tokenList]);
+    const tokenAddress = React.useMemo(() => {
+        return tokenList.find((token) => token.symbol === pair.base)?.address;
+    }, [pair]);
 
     const { data: decimals } = useContractRead({
-        address: tokenMemo?.address as `0x`,
+        address: tokenAddress as `0x`,
         abi: erc20ABI,
         functionName: "decimals",
+    });
+
+    const { data: balance } = useContractRead({
+        address: tokenAddress as `0x`,
+        abi: erc20_abi,
+        functionName: "balanceOf",
+        args: [address],
     });
 
     const resetForm = () => {
@@ -106,10 +116,16 @@ const Buy = () => {
             enqueueSnackbar("Could not estimate volume", { variant: "error" });
         }
     };
+    const tokenBalance =
+        balance && decimals
+            ? Number(formatUnits(balance as bigint, decimals))
+            : 0;
 
     React.useEffect(() => {
-        resetForm();
+        gives && wants && resetForm();
     }, [pair]);
+
+    console.log(tokenBalance, Number(gives));
 
     return (
         <div className="flex flex-col md:flex-row md:space-x-4 justify-between mt-2">
@@ -129,6 +145,11 @@ const Buy = () => {
                     Paid Amount
                 </Label>
                 <Input
+                    className={`${
+                        Number(gives) > tokenBalance
+                            ? "border-2 border-red-500"
+                            : ""
+                    }`}
                     type="text"
                     value={gives}
                     aria-label="amount-given"
@@ -136,7 +157,15 @@ const Buy = () => {
                 />
             </div>
             <div className="flex flex-col md:w-auto mt-4 md:mt-0">
-                <Button onClick={buy} disabled={!wants || !gives || loading}>
+                <Button
+                    onClick={buy}
+                    disabled={
+                        !wants ||
+                        !gives ||
+                        loading ||
+                        Number(gives) > tokenBalance
+                    }
+                >
                     {loading && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}

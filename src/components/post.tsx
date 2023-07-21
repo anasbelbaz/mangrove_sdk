@@ -9,12 +9,35 @@ import { Label } from "./ui/label";
 import { Loader2 } from "lucide-react";
 // notistack
 import { enqueueSnackbar } from "notistack";
+import { formatUnits } from "viem";
+import { erc20ABI, useAccount, useContractRead } from "wagmi";
+//  utils
+import tokenList from "../utils/tokens/mangrove-tokens.json";
+import erc20_abi from "../utils/tokens/abi.json";
 
 const Post = () => {
     const { mangrove, pair } = useMangrove();
     const [gives, setGives] = React.useState<string>("");
     const [wants, setWants] = React.useState<string>("");
     const [loading, setLoading] = React.useState<boolean>(false);
+    const { address } = useAccount();
+
+    const tokenAddress = React.useMemo(() => {
+        return tokenList.find((token) => token.symbol === pair.base)?.address;
+    }, [pair]);
+
+    const { data: decimals } = useContractRead({
+        address: tokenAddress as `0x`,
+        abi: erc20ABI,
+        functionName: "decimals",
+    });
+
+    const { data: balance } = useContractRead({
+        address: tokenAddress as `0x`,
+        abi: erc20_abi,
+        functionName: "balanceOf",
+        args: [address],
+    });
 
     const resetForm = () => {
         setGives("");
@@ -53,8 +76,13 @@ const Post = () => {
         }
     };
 
+    const tokenBalance =
+        balance && decimals
+            ? Number(formatUnits(balance as bigint, decimals))
+            : 0;
+
     React.useEffect(() => {
-        resetForm();
+        gives && wants && resetForm();
     }, [pair]);
 
     return (
@@ -66,6 +94,11 @@ const Post = () => {
                     </Label>
                     <Input
                         type="text"
+                        className={`${
+                            Number(gives) > tokenBalance
+                                ? "border-2 border-red-500"
+                                : ""
+                        }`}
                         value={gives}
                         aria-label="amount-given"
                         onChange={(e) => setGives(e.currentTarget.value)}
@@ -85,7 +118,12 @@ const Post = () => {
                 <div className="flex flex-col md:w-auto mt-4 md:mt-0">
                     <Button
                         onClick={post}
-                        disabled={!wants || !gives || loading}
+                        disabled={
+                            !wants ||
+                            !gives ||
+                            loading ||
+                            Number(gives) > tokenBalance
+                        }
                     >
                         {loading && (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

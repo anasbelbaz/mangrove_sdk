@@ -10,7 +10,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "@mangrovedao/mangrove.js": "^1.4.11-0",
+        "@mangrovedao/mangrove.js": "^1.4.12",
         "@radix-ui/react-dropdown-menu": "^2.0.5",
         "@radix-ui/react-label": "^2.0.2",
         "@radix-ui/react-select": "^1.2.2",

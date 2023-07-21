@@ -6,11 +6,12 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 // wagmi
-import { erc20ABI, useContractRead } from "wagmi";
+import { erc20ABI, useAccount, useContractRead } from "wagmi";
 // viem
 import { formatUnits } from "viem";
-// utils
+//  utils
 import tokenList from "../utils/tokens/mangrove-tokens.json";
+import erc20_abi from "../utils/tokens/abi.json";
 // lucide-react
 import { Loader2 } from "lucide-react";
 // notistack
@@ -21,20 +22,28 @@ const Sell = () => {
     const [gives, setGives] = React.useState<string>("");
     const [wants, setWants] = React.useState<string>("");
     const [loading, setLoading] = React.useState<boolean>(false);
+    const { address } = useAccount();
 
     const resetForm = () => {
         setGives("");
         setWants("");
     };
 
-    const tokenMemo = React.useMemo(() => {
-        return tokenList.find((token) => token.symbol === pair.base);
-    }, [tokenList]);
+    const tokenAddress = React.useMemo(() => {
+        return tokenList.find((token) => token.symbol === pair.base)?.address;
+    }, [pair]);
 
     const { data: decimals } = useContractRead({
-        address: tokenMemo?.address as `0x`,
+        address: tokenAddress as `0x`,
         abi: erc20ABI,
         functionName: "decimals",
+    });
+
+    const { data: balance } = useContractRead({
+        address: tokenAddress as `0x`,
+        abi: erc20_abi,
+        functionName: "balanceOf",
+        args: [address],
     });
 
     const sell = async () => {
@@ -107,8 +116,13 @@ const Sell = () => {
         }
     };
 
+    const tokenBalance =
+        balance && decimals
+            ? Number(formatUnits(balance as bigint, decimals))
+            : 0;
+
     React.useEffect(() => {
-        resetForm();
+        gives && wants && resetForm();
     }, [pair]);
 
     return (
@@ -118,6 +132,11 @@ const Sell = () => {
                     Sell Amount
                 </Label>
                 <Input
+                    className={`${
+                        Number(gives) > tokenBalance
+                            ? "border-2 border-red-500"
+                            : ""
+                    }`}
                     type="text"
                     id="amount-given"
                     value={gives}
@@ -138,11 +157,15 @@ const Sell = () => {
                 />
             </div>
 
-            <div className="flex flex-col md:w-auto mt-4 md:mt-0">
+            <div className="flex flex-col md:w-auto mt-4 md:mt-0 w-full">
                 <Button
                     onClick={sell}
-                    disabled={!wants || !gives || loading}
-                    className="items-baseline"
+                    disabled={
+                        !wants ||
+                        !gives ||
+                        loading ||
+                        Number(gives) > tokenBalance
+                    }
                 >
                     {loading && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
