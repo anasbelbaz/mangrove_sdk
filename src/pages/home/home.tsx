@@ -2,8 +2,10 @@
 import { Card } from "../../components/ui/card";
 // components
 import { Navbar, MintFaucet, Buy, Sell, Post, Pairs } from "../../components";
-import { useAccount } from "wagmi";
 import { Button } from "../../components/ui/button";
+// wagmi
+import { useAccount } from "wagmi";
+// web3modal
 import { useWeb3Modal } from "@web3modal/react";
 
 const Home = () => {
