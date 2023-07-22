@@ -10,6 +10,7 @@ import {
 } from "./ui/select";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import { Label } from "./ui/label";
 // wagmi
 import {
     useContractWrite,
@@ -96,6 +97,7 @@ const MintFaucet = () => {
         abi: erc20_abi,
         functionName: "mint",
         onError() {
+            setLoading(false);
             enqueueSnackbar("Transaction failed", { variant: "error" });
         },
     });
@@ -145,7 +147,10 @@ const MintFaucet = () => {
                     </SelectContent>
                 </Select>
             </div>
-            <div className="flex flex-col space-y-1">
+            <div className="flex w-full md:w-auto md:space-x-2 md:my-0 my-2">
+                <Label htmlFor="amount-wanted" className="m-2">
+                    Mint Amount
+                </Label>
                 <Input
                     type="text"
                     value={amount}
@@ -164,7 +169,7 @@ const MintFaucet = () => {
                     </span>
                 )}
             </div>
-            <div className="flex flex-col w-full md:w-auto md:space-x-2">
+            <div className="flex flex-col w-full md:w-auto md:space-x-2 mt-2 md:mt-0">
                 <Button
                     onClick={isConnected ? mintToken : open}
                     disabled={

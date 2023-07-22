@@ -2,7 +2,7 @@ import React from "react";
 // hooks
 import { useEthersSigner } from "../hooks/adapter";
 // mangrove
-import { Mangrove, Market } from "@mangrovedao/mangrove.js";
+import { Mangrove } from "@mangrovedao/mangrove.js";
 // wagmi
 import { erc20ABI, useAccount, useContractRead } from "wagmi";
 // types
@@ -57,6 +57,7 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
         abi: erc20_abi,
         functionName: "balanceOf",
         args: [address],
+        enabled: !!address,
     });
 
     const signer = useEthersSigner();
@@ -95,9 +96,10 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
                 pair,
                 setPair,
                 mangrove,
-                decimals: decimals || 0,
-                balance:
-                    Number(formatUnits(balance as bigint, decimals || 0)) || 0,
+                decimals: decimals ? decimals : 0,
+                balance: balance
+                    ? Number(formatUnits(balance as bigint, decimals || 0))
+                    : 0,
                 checkMarket,
             }}
         >
