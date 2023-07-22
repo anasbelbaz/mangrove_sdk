@@ -4,13 +4,20 @@ import { useEthersSigner } from "../hooks/adapter";
 // mangrove
 import { Mangrove } from "@mangrovedao/mangrove.js";
 // wagmi
-import { erc20ABI, useAccount, useContractRead } from "wagmi";
+import {
+    erc20ABI,
+    useAccount,
+    useContractRead,
+    useNetwork,
+    useSwitchNetwork,
+} from "wagmi";
 // types
 import { Pair } from "../types";
 // utils
 import tokenList from "../utils/tokens/mangrove-tokens.json";
 import erc20_abi from "../utils/tokens/abi.json";
 import { formatUnits } from "viem";
+import { polygonMumbai } from "wagmi/chains";
 
 type ContextValues = {
     mangrove: Mangrove | undefined;
@@ -35,6 +42,8 @@ export const useMangrove = () => React.useContext(MangroveContext);
 
 const MangroveProvider = ({ children }: React.PropsWithChildren) => {
     const { isConnected, address } = useAccount();
+    const { chain } = useNetwork();
+    const { switchNetwork } = useSwitchNetwork();
 
     const [mangrove, setMangrove] = React.useState<Mangrove | undefined>();
     const [pair, setPair] = React.useState<Pair>({
@@ -64,6 +73,9 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
 
     const initMangrove = async () => {
         try {
+            if (chain && chain.id != polygonMumbai.id) {
+                switchNetwork?.(polygonMumbai.id);
+            }
             const mgv = await Mangrove.connect({
                 signer,
                 provider: signer?.provider,
