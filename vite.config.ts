@@ -2,6 +2,8 @@ import path from "path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 export default defineConfig({
     plugins: [react()],
     define: { "process.env": {}, _global: {} },
@@ -12,7 +14,8 @@ export default defineConfig({
     },
     build: {
         rollupOptions: {
-            external: ["@mangrovedao/mangrove.js"], // Exclude the problematic package from the build
+            external: isProduction ? [] : ["@mangrovedao/mangrove.js"],
+            // Exclude the problematic package from the build
             output: {
                 strict: false,
             },
