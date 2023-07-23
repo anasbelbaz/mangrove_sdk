@@ -11,6 +11,12 @@ export default defineConfig({
         },
     },
     build: {
+        rollupOptions: {
+            external: ["@mangrovedao/mangrove.js"], // Exclude the problematic package from the build
+            output: {
+                strict: false,
+            },
+        },
         sourcemap: false,
     },
 });
