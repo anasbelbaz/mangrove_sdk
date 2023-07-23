@@ -75,6 +75,7 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
         try {
             if (chain && chain.id != polygonMumbai.id) {
                 switchNetwork?.(polygonMumbai.id);
+                return;
             }
             const mgv = await Mangrove.connect({
                 signer,
