@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Pair } from "../types";
 import { formatUnits } from "viem";
+import tokenList from "../utils/tokens/mangrove-tokens.json";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -44,3 +45,8 @@ export const convertNumber = (number: bigint, decimals: number) => {
         formatUnits(number, decimals).replace(/\.(?=[^.]*$)/, "")
     ).toFixed(decimals);
 };
+
+export const tokenAddress = (pair: Pair) => [
+    tokenList.find((token) => token.symbol === pair.base)?.address,
+    tokenList.find((token) => token.symbol === pair.quote)?.address,
+];

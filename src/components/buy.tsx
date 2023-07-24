@@ -6,39 +6,24 @@ import { Input } from "./ui/input";
 // context
 import { useMangrove } from "../contexts/mangrove";
 // viem
-import {
-    erc20ABI,
-    useContractRead,
-    useContractWrite,
-    useWaitForTransaction,
-} from "wagmi";
+import { erc20ABI, useContractWrite, useWaitForTransaction } from "wagmi";
 import { parseUnits } from "viem";
 // lucide-react
 import { Loader2 } from "lucide-react";
 // notistack
 import { enqueueSnackbar } from "notistack";
 // utils
-import tokenList from "../utils/tokens/mangrove-tokens.json";
-import { convertNumber } from "../utils/utils";
+import { convertNumber, tokenAddress } from "../utils/utils";
 
 const Buy = () => {
-    const { mangrove, pair, quoteBalance, refreshBalances } = useMangrove();
-
-    const tokenAddress = [
-        tokenList.find((token) => token.symbol === pair.base)?.address,
-        tokenList.find((token) => token.symbol === pair.quote)?.address,
-    ];
-    const { data: baseDecimals } = useContractRead({
-        address: tokenAddress[0] as `0x`, // base contract
-        abi: erc20ABI,
-        functionName: "decimals",
-    });
-
-    const { data: quoteDecimals } = useContractRead({
-        address: tokenAddress[1] as `0x`, // quote contract
-        abi: erc20ABI,
-        functionName: "decimals",
-    });
+    const {
+        mangrove,
+        pair,
+        quoteBalance,
+        refreshBalances,
+        baseDecimals,
+        quoteDecimals,
+    } = useMangrove();
 
     const [gives, setGives] = React.useState<string>("");
     const [wants, setWants] = React.useState<string>("");
@@ -50,7 +35,7 @@ const Buy = () => {
     };
 
     const { data: approveResponse, write } = useContractWrite({
-        address: tokenAddress[0] as `0x`,
+        address: tokenAddress(pair)[0] as `0x`,
         abi: erc20ABI,
         functionName: "approve",
         onError() {
@@ -102,13 +87,27 @@ const Buy = () => {
                 slippage: 2, //TODO@Anas: add slippage input in order to dynamise its value
             });
 
-            await buyPromises.result;
+            const receipt = await buyPromises.result;
+
             setLoading(false);
             resetForm();
             refreshBalances();
-            enqueueSnackbar(`${pair.quote} Bought with success`, {
-                variant: "success",
-            });
+            enqueueSnackbar(
+                <span>
+                    {pair.quote} Bought with success.{" "}
+                    <a
+                        href={`https://mumbai.polygonscan.com/tx/${receipt.txReceipt.transactionHash}`}
+                        target="_blank"
+                        className="underline"
+                    >
+                        See on Explorer
+                    </a>
+                </span>,
+                {
+                    variant: "success",
+                    autoHideDuration: 10000,
+                }
+            );
         } catch (error) {
             setLoading(false);
             enqueueSnackbar("Transaction failed", { variant: "error" });
@@ -121,7 +120,6 @@ const Buy = () => {
                 throw new Error("Mangrove is not defined");
 
             setGives(amount);
-
             const market = await mangrove.market(pair);
             const estimated = await market.estimateVolumeToReceive({
                 given: amount,
@@ -141,7 +139,6 @@ const Buy = () => {
 
             setWants(amount);
             const market = await mangrove.market(pair);
-
             const estimated = await market.estimateVolumeToSpend({
                 given: amount,
                 what: "base",

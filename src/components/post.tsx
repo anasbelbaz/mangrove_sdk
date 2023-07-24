@@ -39,16 +39,30 @@ const Post = () => {
             const fund = await directLP.computeAskProvision();
 
             // Post a new ask
-            await directLP.newAsk({
+            const receipt = await directLP.newAsk({
                 gives,
                 wants,
                 fund,
             });
+
             setLoading(false);
             resetForm();
-            enqueueSnackbar(`${pair.quote} Offer posted with success`, {
-                variant: "success",
-            });
+            enqueueSnackbar(
+                <span>
+                    {pair.quote} Offer posted with success.{" "}
+                    <a
+                        href={`https://mumbai.polygonscan.com/tx/${receipt.event.transactionHash}`}
+                        target="_blank"
+                        className="underline"
+                    >
+                        See on Explorer
+                    </a>
+                </span>,
+                {
+                    variant: "success",
+                    autoHideDuration: 10000,
+                }
+            );
         } catch (error) {
             setLoading(false);
             enqueueSnackbar("Transaction failed", { variant: "error" });

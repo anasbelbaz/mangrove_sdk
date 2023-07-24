@@ -2,7 +2,13 @@ import React from "react";
 // mangrove
 import { Mangrove } from "@mangrovedao/mangrove.js";
 // wagmi
-import { erc20ABI, useAccount, useContractRead, useNetwork } from "wagmi";
+import {
+    erc20ABI,
+    useAccount,
+    useContractRead,
+    useContractReads,
+    useNetwork,
+} from "wagmi";
 import { polygonMumbai } from "wagmi/chains";
 // viewm
 import { formatUnits } from "viem";
@@ -13,6 +19,7 @@ import { Pair } from "../types";
 // utils
 import tokenList from "../utils/tokens/mangrove-tokens.json";
 import erc20_abi from "../utils/tokens/abi.json";
+import { tokenAddress } from "../utils/utils";
 
 type ContextValues = {
     mangrove: Mangrove | undefined;
@@ -40,6 +47,17 @@ const defaultValues: ContextValues = {
     refreshBalances: () => null,
 };
 
+const formatContractReads = (data: any) => {
+    if (data && data[0].status === "success") {
+        return {
+            baseDecimals: Number(data[0].result),
+            quoteDecimals: Number(data[2].result),
+            baseBalance: Number(formatUnits(data[1].result, data[0].result)),
+            quoteBalance: Number(formatUnits(data[3].result, data[2].result)),
+        };
+    }
+};
+
 const MangroveContext = React.createContext(defaultValues);
 export const useMangrove = () => React.useContext(MangroveContext);
 
@@ -54,35 +72,33 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
         quote: "USDT",
     });
 
-    const tokenAddress = [
-        tokenList.find((token) => token.symbol === pair.base)?.address,
-        tokenList.find((token) => token.symbol === pair.quote)?.address,
-    ];
-
-    const { data: baseDecimals } = useContractRead({
-        address: tokenAddress[0] as `0x`,
-        abi: erc20ABI,
-        functionName: "decimals",
-    });
-    const { data: quoteDecimals } = useContractRead({
-        address: tokenAddress[1] as `0x`,
-        abi: erc20ABI,
-        functionName: "decimals",
-    });
-
-    const { data: baseBalance, refetch: getBaseBalance } = useContractRead({
-        address: tokenAddress[0] as `0x`,
-        abi: erc20_abi,
-        functionName: "balanceOf",
-        args: [address],
-        enabled: !!address,
-    });
-
-    const { data: quoteBalance, refetch: getQuoteBalance } = useContractRead({
-        address: tokenAddress[1] as `0x`,
-        abi: erc20_abi,
-        functionName: "balanceOf",
-        args: [address],
+    const { data, refetch } = useContractReads({
+        contracts: [
+            {
+                address: tokenAddress(pair)[0] as `0x`,
+                abi: erc20ABI,
+                functionName: "decimals",
+            },
+            {
+                address: tokenAddress(pair)[0] as `0x`,
+                abi: erc20ABI,
+                functionName: "balanceOf",
+                args: [address || `0x`],
+            },
+            {
+                address: tokenAddress(pair)[1] as `0x`,
+                abi: erc20ABI,
+                functionName: "decimals",
+            },
+            {
+                address: tokenAddress(pair)[1] as `0x`,
+                abi: erc20ABI,
+                functionName: "balanceOf",
+                args: [address || `0x`],
+            },
+        ],
+        select: (data) => formatContractReads(data),
+        cacheTime: 5000,
         enabled: !!address,
     });
 
@@ -124,9 +140,8 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
         }
     };
 
-    const refreshBalances = async () => {
-        getBaseBalance();
-        getQuoteBalance();
+    const refreshBalances = () => {
+        refetch();
     };
 
     React.useEffect(() => {
@@ -139,21 +154,10 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
             value={{
                 refreshBalances,
                 isMumbai,
-                baseDecimals: Number(quoteDecimals),
-                baseBalance: baseBalance
-                    ? Number(
-                          formatUnits(baseBalance as bigint, baseDecimals || 0)
-                      )
-                    : 0,
-                quoteDecimals: Number(quoteDecimals),
-                quoteBalance: quoteBalance
-                    ? Number(
-                          formatUnits(
-                              quoteBalance as bigint,
-                              quoteDecimals || 0
-                          )
-                      )
-                    : 0,
+                baseDecimals: data?.baseDecimals || 0,
+                baseBalance: data?.baseBalance || 0,
+                quoteDecimals: data?.quoteDecimals || 0,
+                quoteBalance: data?.quoteBalance || 0,
                 pair,
                 setPair,
                 mangrove,

@@ -35,7 +35,7 @@ function App() {
                 projectId={projectId as string}
                 ethereumClient={ethereumClient}
             />
-            <SnackbarProvider autoHideDuration={5000} />
+            <SnackbarProvider autoHideDuration={3000} />
             <MangroveProvider>
                 <Home />
             </MangroveProvider>

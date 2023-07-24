@@ -11,33 +11,19 @@ import { parseUnits } from "viem";
 import { Loader2 } from "lucide-react";
 // notistack
 import { enqueueSnackbar } from "notistack";
-import {
-    erc20ABI,
-    useContractRead,
-    useContractWrite,
-    useWaitForTransaction,
-} from "wagmi";
+import { erc20ABI, useContractWrite, useWaitForTransaction } from "wagmi";
 // utils
-import tokenList from "../utils/tokens/mangrove-tokens.json";
-import { convertNumber } from "../utils/utils";
+import { convertNumber, tokenAddress } from "../utils/utils";
 
 const Sell = () => {
-    const { mangrove, pair, baseBalance, refreshBalances } = useMangrove();
-
-    const tokenAddress = [
-        tokenList.find((token) => token.symbol === pair.base)?.address,
-        tokenList.find((token) => token.symbol === pair.quote)?.address,
-    ];
-    const { data: baseDecimals } = useContractRead({
-        address: tokenAddress[0] as `0x`,
-        abi: erc20ABI,
-        functionName: "decimals",
-    });
-    const { data: quoteDecimals } = useContractRead({
-        address: tokenAddress[1] as `0x`,
-        abi: erc20ABI,
-        functionName: "decimals",
-    });
+    const {
+        mangrove,
+        pair,
+        baseBalance,
+        refreshBalances,
+        baseDecimals,
+        quoteDecimals,
+    } = useMangrove();
 
     const [gives, setGives] = React.useState<string>("");
     const [wants, setWants] = React.useState<string>("");
@@ -49,7 +35,7 @@ const Sell = () => {
     };
 
     const { data: approveResponse, write } = useContractWrite({
-        address: tokenAddress[0] as `0x`,
+        address: tokenAddress(pair)[0] as `0x`,
         abi: erc20ABI,
         functionName: "approve",
         onError() {
@@ -100,14 +86,27 @@ const Sell = () => {
                 gives,
                 slippage: 2, //TODO@Anas: add slippage input in order to dynamise its value
             });
-            await sellPromise.result;
+            const receipt = await sellPromise.result;
 
             setLoading(false);
             resetForm();
             refreshBalances();
-            enqueueSnackbar(`${pair.base} market order placed with success`, {
-                variant: "success",
-            });
+            enqueueSnackbar(
+                <span>
+                    {pair.base} market order placed with success.{" "}
+                    <a
+                        href={`https://mumbai.polygonscan.com/tx/${receipt.txReceipt.transactionHash}`}
+                        target="_blank"
+                        className="underline"
+                    >
+                        See on Explorer
+                    </a>
+                </span>,
+                {
+                    variant: "success",
+                    autoHideDuration: 10000,
+                }
+            );
         } catch (error) {
             setLoading(false);
             enqueueSnackbar("Transaction failed", { variant: "error" });
