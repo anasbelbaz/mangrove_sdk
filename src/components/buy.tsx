@@ -78,7 +78,7 @@ const Buy = () => {
         write?.({
             args: [
                 "0xd1805f6Fe12aFF69D4264aE3e49ef320895e2D8b",
-                parseUnits(`${Number(gives) + 0.1}`, baseDecimals),
+                parseUnits(`${Number(gives) + 0.5}`, baseDecimals),
             ],
         });
     };
