@@ -125,6 +125,9 @@ const Buy = () => {
 
     const handleSend = async (amount: string) => {
         try {
+            if (!/^\d+(\.\d*)?$/.test(amount)) {
+                return;
+            }
             if (!amount) {
                 resetForm();
                 return;
@@ -145,6 +148,9 @@ const Buy = () => {
 
     const handleBuy = async (amount: string) => {
         try {
+            if (!/^\d+(\.\d*)?$/.test(amount)) {
+                return;
+            }
             if (!amount) {
                 resetForm();
                 return;

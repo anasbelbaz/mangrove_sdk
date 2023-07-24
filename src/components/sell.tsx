@@ -124,6 +124,9 @@ const Sell = () => {
 
     const handleSend = async (amount: string) => {
         try {
+            if (!/^\d+(\.\d*)?$/.test(amount)) {
+                return;
+            }
             if (!amount) {
                 resetForm();
                 return;
@@ -147,11 +150,13 @@ const Sell = () => {
 
     const handleReceive = async (amount: string) => {
         try {
+            if (!/^\d+(\.\d*)?$/.test(amount)) {
+                return;
+            }
             if (!amount) {
                 resetForm();
                 return;
             }
-
             if (!mangrove || !baseDecimals) throw new Error("An error occured");
 
             setWants(amount);

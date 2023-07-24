@@ -98,7 +98,14 @@ const Post = () => {
                             }`}
                             value={gives}
                             aria-label="amount-given"
-                            onChange={(e) => setGives(e.currentTarget.value)}
+                            onChange={(e) => {
+                                if (
+                                    !/^\d+(\.\d*)?$/.test(e.currentTarget.value)
+                                )
+                                    return;
+
+                                setGives(e.currentTarget.value);
+                            }}
                         />
                         <span
                             className={`text-xs mt-2 text-gray-500 ${
@@ -124,7 +131,14 @@ const Post = () => {
                             type="text"
                             value={wants}
                             aria-label="amount-wanted"
-                            onChange={(e) => setWants(e.currentTarget.value)}
+                            onChange={(e) => {
+                                if (
+                                    !/^\d+(\.\d*)?$/.test(e.currentTarget.value)
+                                )
+                                    return;
+
+                                setWants(e.currentTarget.value);
+                            }}
                         />
                         <span className={`text-xs mt-2 text-gray-500`}>
                             {wantsLiveBalance(
