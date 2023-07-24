@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 // viem
-import { formatUnits } from "viem";
+import { formatUnits, parseUnits } from "viem";
 // lucide-react
 import { Loader2 } from "lucide-react";
 // notistack
@@ -28,9 +28,14 @@ const Sell = () => {
             if (!mangrove) throw new Error("Mangrove is not defined");
             setLoading(true);
             const market = await mangrove.market(pair);
+            const [formatedWants, formatedGives] = [
+                parseUnits(wants, decimals),
+                parseUnits(gives, decimals),
+            ];
+
             const buyPromises = await market.sell({
-                wants,
-                gives,
+                wants: formatedWants,
+                gives: formatedGives,
                 slippage: 2,
             });
             await buyPromises.result;
@@ -59,10 +64,7 @@ const Sell = () => {
             });
 
             setWants(
-                formatUnits(
-                    estimated.estimatedVolume as bigint,
-                    decimals
-                ).substring(0, 10)
+                formatUnits(estimated.estimatedVolume as bigint, decimals)
             );
         } catch (error) {
             enqueueSnackbar("Could not estimate volume", { variant: "error" });
@@ -83,10 +85,7 @@ const Sell = () => {
             });
 
             setGives(
-                formatUnits(
-                    estimated.estimatedVolume as bigint,
-                    decimals
-                ).substring(0, 10)
+                formatUnits(estimated.estimatedVolume as bigint, decimals)
             );
         } catch (error) {
             enqueueSnackbar("Could not estimate volume", { variant: "error" });

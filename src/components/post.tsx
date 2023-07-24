@@ -9,9 +9,10 @@ import { Label } from "./ui/label";
 import { Loader2 } from "lucide-react";
 // notistack
 import { enqueueSnackbar } from "notistack";
+import { parseUnits } from "viem";
 
 const Post = () => {
-    const { mangrove, pair, balance } = useMangrove();
+    const { mangrove, pair, balance, decimals } = useMangrove();
     const [gives, setGives] = React.useState<string>("");
     const [wants, setWants] = React.useState<string>("");
     const [loading, setLoading] = React.useState<boolean>(false);
@@ -29,8 +30,13 @@ const Post = () => {
 
             const directLP = await mangrove.liquidityProvider(market);
 
+            const [formatedWants, formatedGives] = [
+                parseUnits(wants, decimals),
+                parseUnits(gives, decimals),
+            ];
+
             const tx = await market.base.approve(mangrove.address, {
-                amount: gives,
+                amount: formatedGives,
             });
             await tx.wait();
 
@@ -38,8 +44,8 @@ const Post = () => {
 
             // Post a new ask
             await directLP.newAsk({
-                gives,
-                wants,
+                gives: formatedGives,
+                wants: formatedWants,
                 fund,
             });
             setLoading(false);

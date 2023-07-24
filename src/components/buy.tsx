@@ -6,7 +6,7 @@ import { Input } from "./ui/input";
 // context
 import { useMangrove } from "../contexts/mangrove";
 // viem
-import { formatUnits } from "viem";
+import { formatUnits, parseUnits } from "viem";
 // lucide-react
 import { Loader2 } from "lucide-react";
 // notistack
@@ -29,9 +29,14 @@ const Buy = () => {
             setLoading(true);
             const market = await mangrove.market(pair);
 
+            const [formatedWants, formatedGives] = [
+                parseUnits(wants, decimals),
+                parseUnits(gives, decimals),
+            ];
+
             const buyPromises = await market.buy({
-                wants,
-                gives,
+                wants: formatedWants,
+                gives: formatedGives,
                 slippage: 2, //TODO@Anas: add slippage input in order to dynamise its value
             });
             await buyPromises.result;
@@ -41,6 +46,7 @@ const Buy = () => {
                 variant: "success",
             });
         } catch (error) {
+            console.log(error);
             setLoading(false);
             enqueueSnackbar("Transaction failed", { variant: "error" });
         }
@@ -60,10 +66,7 @@ const Buy = () => {
             });
 
             setWants(
-                formatUnits(
-                    estimated.estimatedVolume as bigint,
-                    decimals
-                ).substring(0, 10)
+                formatUnits(estimated.estimatedVolume as bigint, decimals)
             );
         } catch (error) {
             enqueueSnackbar("Could not estimate volume", { variant: "error" });
@@ -84,10 +87,7 @@ const Buy = () => {
             });
 
             setGives(
-                formatUnits(
-                    estimated.estimatedVolume as bigint,
-                    decimals
-                ).substring(0, 10)
+                formatUnits(estimated.estimatedVolume as bigint, decimals)
             );
         } catch (error) {
             enqueueSnackbar("Could not estimate volume", { variant: "error" });

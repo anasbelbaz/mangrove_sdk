@@ -45,7 +45,7 @@ const Pairs = () => {
                 </SelectContent>
             </Select>
             <span className="mt-3">
-                {balance && `${pair.base} Balance: ${balance}`}
+                {balance && `${pair.base} Balance: ${balance.toFixed(5)}`}
             </span>
         </div>
     );

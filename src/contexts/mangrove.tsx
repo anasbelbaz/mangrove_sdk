@@ -23,10 +23,11 @@ import erc20_abi from "../utils/tokens/abi.json";
 type ContextValues = {
     mangrove: Mangrove | undefined;
     pair: Pair;
-    checkMarket: () => void;
-    setPair: (pair: Pair) => void;
     decimals: number;
     balance: number;
+    isMumbai: boolean;
+    checkMarket: () => void;
+    setPair: (pair: Pair) => void;
 };
 
 const defaultValues: ContextValues = {
@@ -34,6 +35,7 @@ const defaultValues: ContextValues = {
     pair: { base: "WETH", quote: "USDC" },
     decimals: 0,
     balance: 0,
+    isMumbai: false,
     checkMarket: () => null,
     setPair: () => null,
 };
@@ -47,6 +49,8 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
     const { switchNetwork } = useSwitchNetwork();
 
     const [mangrove, setMangrove] = React.useState<Mangrove | undefined>();
+    const [isMumbai, setIsMumbai] = React.useState<boolean>(false);
+
     const [pair, setPair] = React.useState<Pair>({
         base: "USDC",
         quote: "USDT",
@@ -74,16 +78,16 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
 
     const initMangrove = async () => {
         try {
-            if (chain && chain.id != polygonMumbai.id) {
-                switchNetwork?.(polygonMumbai.id);
-                return;
-            }
-            const mgv = await Mangrove.connect({
-                signer,
-                provider: signer?.provider,
-            });
+            if (isMumbai) {
+                const mgv = await Mangrove.connect({
+                    signer,
+                    provider: signer?.provider,
+                });
 
-            setMangrove(mgv);
+                setMangrove(mgv);
+            } else {
+                throw new Error("Wrong wallet network");
+            }
         } catch (error) {
             console.log(error);
         }
@@ -100,13 +104,23 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
         }
     };
 
+    const checkNetwork = async () => {
+        if (chain && chain.id != polygonMumbai.id) {
+            setIsMumbai(false);
+        } else {
+            setIsMumbai(true);
+        }
+    };
+
     React.useEffect(() => {
+        isConnected && checkNetwork();
         isConnected && signer?.provider && initMangrove();
-    }, [isConnected, signer]);
+    }, [isConnected, signer, chain]);
 
     return (
         <MangroveContext.Provider
             value={{
+                isMumbai,
                 pair,
                 setPair,
                 mangrove,
