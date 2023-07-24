@@ -13,13 +13,19 @@ import { Loader2 } from "lucide-react";
 // notistack
 import { enqueueSnackbar } from "notistack";
 // utils
-import { convertNumber, tokenAddress } from "../utils/utils";
+import {
+    convertNumber,
+    givesLiveBalance,
+    tokenAddress,
+    wantsLiveBalance,
+} from "../utils/utils";
 
 const Buy = () => {
     const {
         mangrove,
         pair,
         quoteBalance,
+        baseBalance,
         refreshBalances,
         baseDecimals,
         quoteDecimals,
@@ -119,8 +125,7 @@ const Buy = () => {
 
     const handleSend = async (amount: string) => {
         try {
-            if (!mangrove || !amount || !baseDecimals)
-                throw new Error("Mangrove is not defined");
+            if (!mangrove || !baseDecimals) throw new Error("An error occured");
 
             setGives(amount);
             const market = await mangrove.market(pair);
@@ -128,7 +133,6 @@ const Buy = () => {
                 given: amount,
                 what: "quote",
             });
-
             setWants(convertNumber(estimated.estimatedVolume, baseDecimals));
         } catch (error) {
             enqueueSnackbar("Could not estimate volume", { variant: "error" });
@@ -137,8 +141,7 @@ const Buy = () => {
 
     const handleBuy = async (amount: string) => {
         try {
-            if (!mangrove || !amount || !quoteDecimals)
-                throw new Error("Mangrove is not defined");
+            if (!mangrove || !baseDecimals) throw new Error("An error occured");
 
             setWants(amount);
             const market = await mangrove.market(pair);
@@ -163,28 +166,51 @@ const Buy = () => {
                 <Label htmlFor="amount-wanted" className="m-2">
                     Buy Amount
                 </Label>
-                <Input
-                    type="text"
-                    value={wants}
-                    aria-label="amount-wanted"
-                    onChange={(e) => handleBuy(e.currentTarget.value)}
-                />
+                <div className="flex flex-col w-full justify-between">
+                    <Input
+                        type="text"
+                        value={wants}
+                        aria-label="amount-wanted"
+                        onChange={(e) => handleBuy(e.currentTarget.value)}
+                    />
+
+                    <span className={`text-xs mt-2 text-gray-500`}>
+                        {wantsLiveBalance(
+                            baseBalance,
+                            Number(wants),
+                            pair.base
+                        )}
+                    </span>
+                </div>
             </div>
             <div className="flex flex-col w-full md:flex-row">
                 <Label htmlFor="amount-given" className="m-2">
                     Paid Amount
                 </Label>
-                <Input
-                    className={`${
-                        Number(gives) > quoteBalance
-                            ? "border-2 border-red-500"
-                            : ""
-                    }`}
-                    type="text"
-                    value={gives}
-                    aria-label="amount-given"
-                    onChange={(e) => handleSend(e.currentTarget.value)}
-                />
+                <div className="flex flex-col w-full justify-between">
+                    <Input
+                        className={`${
+                            Number(gives) > quoteBalance
+                                ? "border-2 border-red-500"
+                                : ""
+                        }`}
+                        type="text"
+                        value={gives}
+                        aria-label="amount-given"
+                        onChange={(e) => handleSend(e.currentTarget.value)}
+                    />
+                    <span
+                        className={`text-xs mt-2 text-gray-500 ${
+                            Number(gives) > quoteBalance ? "text-red-500" : ""
+                        }`}
+                    >
+                        {givesLiveBalance(
+                            quoteBalance,
+                            Number(gives),
+                            pair.quote
+                        )}
+                    </span>
+                </div>
             </div>
             <div className="flex flex-col md:w-auto mt-4 md:mt-0">
                 <Button

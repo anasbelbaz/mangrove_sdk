@@ -13,7 +13,7 @@ import { useMangrove } from "../contexts/mangrove";
 import { pairToString, stringToPair, pairs } from "../utils/utils";
 
 const Pairs = () => {
-    const { pair, setPair, baseBalance, quoteBalance } = useMangrove();
+    const { pair, setPair } = useMangrove();
 
     const handlePairChange = (pair: string) => {
         const selectedPair = stringToPair(pair);
@@ -44,14 +44,6 @@ const Pairs = () => {
                     ))}
                 </SelectContent>
             </Select>
-            <span className="mt-3">
-                {baseBalance &&
-                    `${pair.base} Balance: ${baseBalance.toFixed(5)}`}
-            </span>
-            <span className="mt-3">
-                {quoteBalance &&
-                    `${pair.quote} Balance: ${quoteBalance.toFixed(5)}`}
-            </span>
         </div>
     );
 };

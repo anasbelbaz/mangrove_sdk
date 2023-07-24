@@ -9,9 +9,10 @@ import { Label } from "./ui/label";
 import { Loader2 } from "lucide-react";
 // notistack
 import { enqueueSnackbar } from "notistack";
+import { givesLiveBalance, wantsLiveBalance } from "../utils/utils";
 
 const Post = () => {
-    const { mangrove, pair, baseBalance } = useMangrove();
+    const { mangrove, pair, baseBalance, quoteBalance } = useMangrove();
 
     const [gives, setGives] = React.useState<string>("");
     const [wants, setWants] = React.useState<string>("");
@@ -87,28 +88,58 @@ const Post = () => {
                     <Label htmlFor="amount-given" className="m-2">
                         Amount given
                     </Label>
-                    <Input
-                        type="text"
-                        className={`${
-                            Number(gives) > baseBalance
-                                ? "border-2 border-red-500"
-                                : ""
-                        }`}
-                        value={gives}
-                        aria-label="amount-given"
-                        onChange={(e) => setGives(e.currentTarget.value)}
-                    />
+                    <div className="flex flex-col w-full justify-between">
+                        <Input
+                            type="text"
+                            className={`${
+                                Number(gives) > baseBalance
+                                    ? "border-2 border-red-500"
+                                    : ""
+                            }`}
+                            value={gives}
+                            aria-label="amount-given"
+                            onChange={(e) => setGives(e.currentTarget.value)}
+                        />
+                        <span
+                            className={`text-xs mt-2 text-gray-500 ${
+                                Number(gives) > baseBalance
+                                    ? "text-red-500"
+                                    : ""
+                            }`}
+                        >
+                            {givesLiveBalance(
+                                baseBalance,
+                                Number(gives),
+                                pair.base
+                            )}
+                        </span>
+                    </div>
                 </div>
                 <div className="flex flex-col w-full md:flex-row">
                     <Label htmlFor="amount-wanted" className="m-2">
                         Amount wanted
                     </Label>
-                    <Input
-                        type="text"
-                        value={wants}
-                        aria-label="amount-wanted"
-                        onChange={(e) => setWants(e.currentTarget.value)}
-                    />
+                    <div className="flex flex-col w-full justify-between">
+                        <Input
+                            type="text"
+                            value={wants}
+                            aria-label="amount-wanted"
+                            onChange={(e) => setWants(e.currentTarget.value)}
+                        />
+                        <span
+                            className={`text-xs mt-2 text-gray-500 ${
+                                Number(gives) > baseBalance
+                                    ? "text-red-500"
+                                    : ""
+                            }`}
+                        >
+                            {wantsLiveBalance(
+                                quoteBalance,
+                                Number(gives),
+                                pair.quote
+                            )}
+                        </span>
+                    </div>
                 </div>
                 <div className="flex flex-col md:w-auto mt-4 md:mt-0">
                     <Button

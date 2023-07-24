@@ -50,3 +50,18 @@ export const tokenAddress = (pair: Pair) => [
     tokenList.find((token) => token.symbol === pair.base)?.address,
     tokenList.find((token) => token.symbol === pair.quote)?.address,
 ];
+
+export const givesLiveBalance = (
+    balance: number,
+    amount: number,
+    token: string
+) =>
+    balance - Number(amount) <= 0
+        ? "Insufficient funds"
+        : `${(balance - Number(amount)).toFixed(5)} ${token}`;
+
+export const wantsLiveBalance = (
+    balance: number,
+    amount: number,
+    token: string
+) => `${(balance + Number(amount)).toFixed(5)} ${token}`;

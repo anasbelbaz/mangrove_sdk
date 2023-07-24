@@ -13,13 +13,19 @@ import { Loader2 } from "lucide-react";
 import { enqueueSnackbar } from "notistack";
 import { erc20ABI, useContractWrite, useWaitForTransaction } from "wagmi";
 // utils
-import { convertNumber, tokenAddress } from "../utils/utils";
+import {
+    convertNumber,
+    givesLiveBalance,
+    tokenAddress,
+    wantsLiveBalance,
+} from "../utils/utils";
 
 const Sell = () => {
     const {
         mangrove,
         pair,
         baseBalance,
+        quoteBalance,
         refreshBalances,
         baseDecimals,
         quoteDecimals,
@@ -118,8 +124,8 @@ const Sell = () => {
 
     const handleSend = async (amount: string) => {
         try {
-            if (!amount || !quoteDecimals) return;
-            if (!mangrove) throw new Error("Mangrove is not defined");
+            if (!mangrove || !quoteDecimals)
+                throw new Error("An error occured");
 
             setGives(amount);
 
@@ -137,8 +143,7 @@ const Sell = () => {
 
     const handleReceive = async (amount: string) => {
         try {
-            if (!amount || !baseDecimals) return;
-            if (!mangrove) throw new Error("Mangrove is not defined");
+            if (!mangrove || !baseDecimals) throw new Error("An error occured");
 
             setWants(amount);
             const market = await mangrove.market(pair);
@@ -164,30 +169,52 @@ const Sell = () => {
                 <Label htmlFor="amount-given" className="m-2">
                     Sell Amount
                 </Label>
-                <Input
-                    className={`${
-                        Number(gives) > baseBalance
-                            ? "border-2 border-red-500"
-                            : ""
-                    }`}
-                    type="text"
-                    id="amount-given"
-                    value={gives}
-                    aria-label="amount-given"
-                    onChange={(e) => handleSend(e.currentTarget.value)}
-                />
+                <div className="flex flex-col w-full justify-between">
+                    <Input
+                        className={`${
+                            Number(gives) > baseBalance
+                                ? "border-2 border-red-500"
+                                : ""
+                        }`}
+                        type="text"
+                        id="amount-given"
+                        value={gives}
+                        aria-label="amount-given"
+                        onChange={(e) => handleSend(e.currentTarget.value)}
+                    />
+                    <span
+                        className={`text-xs mt-2 text-gray-500 ${
+                            Number(gives) > baseBalance ? "text-red-500" : ""
+                        }`}
+                    >
+                        {givesLiveBalance(
+                            baseBalance,
+                            Number(gives),
+                            pair.base
+                        )}
+                    </span>
+                </div>
             </div>
 
             <div className="flex flex-col w-full md:flex-row">
                 <Label htmlFor="amount-wanted" className="m-2">
                     Receive Amount
                 </Label>
-                <Input
-                    type="text"
-                    value={wants}
-                    aria-label="amount-wanted"
-                    onChange={(e) => handleReceive(e.currentTarget.value)}
-                />
+                <div className="flex flex-col w-full justify-between">
+                    <Input
+                        type="text"
+                        value={wants}
+                        aria-label="amount-wanted"
+                        onChange={(e) => handleReceive(e.currentTarget.value)}
+                    />
+                    <span className=" text-xs mt-2 text-gray-500">
+                        {wantsLiveBalance(
+                            quoteBalance,
+                            Number(wants),
+                            pair.quote
+                        )}
+                    </span>
+                </div>
             </div>
 
             <div className="flex flex-col md:w-auto mt-4 md:mt-0 w-full">
