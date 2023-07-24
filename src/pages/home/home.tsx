@@ -33,6 +33,12 @@ const Home = () => {
                     <MintFaucet />
                 </Card>
                 <Card className="mx-auto mt-10 p-10">
+                    <h1>Mangrove playground</h1>
+                    {!isConnected && (
+                        <Button onClick={open} className="mt-5">
+                            Connect wallet
+                        </Button>
+                    )}
                     {isConnected && (
                         <div className="flex flex-col space-y-4">
                             <div className="flex flex-col items-center justify-center p-4 w-full">
@@ -48,10 +54,6 @@ const Home = () => {
                                 <Post />
                             </div>
                         </div>
-                    )}
-
-                    {!isConnected && (
-                        <Button onClick={open}> Connect wallet </Button>
                     )}
                 </Card>
             </div>

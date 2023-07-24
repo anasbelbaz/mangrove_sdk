@@ -126,13 +126,7 @@ const Post = () => {
                             aria-label="amount-wanted"
                             onChange={(e) => setWants(e.currentTarget.value)}
                         />
-                        <span
-                            className={`text-xs mt-2 text-gray-500 ${
-                                Number(gives) > baseBalance
-                                    ? "text-red-500"
-                                    : ""
-                            }`}
-                        >
+                        <span className={`text-xs mt-2 text-gray-500`}>
                             {wantsLiveBalance(
                                 quoteBalance,
                                 Number(gives),
