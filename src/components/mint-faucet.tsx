@@ -109,6 +109,7 @@ const MintFaucet = () => {
             if (error) {
                 enqueueSnackbar(error.message, { variant: "error" });
             } else if (d) {
+                setAmount("");
                 enqueueSnackbar(`Tokens successfully minted`, {
                     variant: "success",
                 });

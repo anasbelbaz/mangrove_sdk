@@ -78,7 +78,7 @@ const Sell = () => {
         write?.({
             args: [
                 "0xd1805f6Fe12aFF69D4264aE3e49ef320895e2D8b",
-                parseUnits(gives, baseDecimals),
+                parseUnits(`${Number(gives) + 0.1}`, baseDecimals),
             ],
         });
     };
@@ -124,6 +124,10 @@ const Sell = () => {
 
     const handleSend = async (amount: string) => {
         try {
+            if (!amount) {
+                resetForm();
+                return;
+            }
             if (!mangrove || !quoteDecimals)
                 throw new Error("An error occured");
 
@@ -143,6 +147,11 @@ const Sell = () => {
 
     const handleReceive = async (amount: string) => {
         try {
+            if (!amount) {
+                resetForm();
+                return;
+            }
+
             if (!mangrove || !baseDecimals) throw new Error("An error occured");
 
             setWants(amount);
