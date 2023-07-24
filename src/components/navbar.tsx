@@ -91,6 +91,16 @@ function WalletButton() {
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                         <a
+                            href="https://mumbaifaucet.com/"
+                            target="_blank"
+                            className="inline-flex"
+                        >
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            <span>Faucet</span>
+                        </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        <a
                             href={`${chain?.blockExplorers?.default.url}/address/${address}`}
                             target="_blank"
                             className="inline-flex"
