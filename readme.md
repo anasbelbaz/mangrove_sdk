@@ -1,7 +1,3 @@
-## Set up environment
-
-Copy `.env.exemple` into `.env` and update each values
-
 ## Available Scripts
 
 In the project directory, you can run:
