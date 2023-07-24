@@ -6,21 +6,22 @@ import {
     SelectTrigger,
     SelectValue,
 } from "./ui/select";
+import { Label } from "./ui/label";
 // context
 import { useMangrove } from "../contexts/mangrove";
 // utils
 import { pairToString, stringToPair, pairs } from "../utils/utils";
-import { Label } from "./ui/label";
 
 const Pairs = () => {
-    const { pair, setPair } = useMangrove();
+    const { pair, setPair, balance } = useMangrove();
 
     const handlePairChange = (pair: string) => {
         const selectedPair = stringToPair(pair);
         setPair(selectedPair);
     };
+
     return (
-        <>
+        <div className="flex flex-col items-center justify-center">
             <Label htmlFor="amount-wanted" className="m-2">
                 Select Pair
             </Label>
@@ -43,7 +44,10 @@ const Pairs = () => {
                     ))}
                 </SelectContent>
             </Select>
-        </>
+            <span className="mt-3">
+                {balance && `${pair.base} Balance: ${balance}`}
+            </span>
+        </div>
     );
 };
 export default Pairs;
