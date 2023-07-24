@@ -2,13 +2,7 @@ import React from "react";
 // mangrove
 import { Mangrove } from "@mangrovedao/mangrove.js";
 // wagmi
-import {
-    erc20ABI,
-    useAccount,
-    useContractRead,
-    useNetwork,
-    useSwitchNetwork,
-} from "wagmi";
+import { erc20ABI, useAccount, useContractRead, useNetwork } from "wagmi";
 import { polygonMumbai } from "wagmi/chains";
 // viewm
 import { formatUnits } from "viem";
@@ -46,7 +40,6 @@ export const useMangrove = () => React.useContext(MangroveContext);
 const MangroveProvider = ({ children }: React.PropsWithChildren) => {
     const { isConnected, address } = useAccount();
     const { chain } = useNetwork();
-    const { switchNetwork } = useSwitchNetwork();
 
     const [mangrove, setMangrove] = React.useState<Mangrove | undefined>();
     const [isMumbai, setIsMumbai] = React.useState<boolean>(false);

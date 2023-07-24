@@ -3,13 +3,13 @@ import { Card } from "../../components/ui/card";
 // components
 import { Navbar, MintFaucet, Buy, Sell, Post, Pairs } from "../../components";
 import { Button } from "../../components/ui/button";
+import SwitchNetwork from "../../components/switchNetwork";
 // wagmi
 import { useAccount } from "wagmi";
 // web3modal
 import { useWeb3Modal } from "@web3modal/react";
-import SwitchNetwork from "../../components/switchNetwork";
+// context
 import { useMangrove } from "../../contexts/mangrove";
-import { DialogTrigger } from "../../components/ui/dialog";
 
 const Home = () => {
     const { isConnected } = useAccount();
