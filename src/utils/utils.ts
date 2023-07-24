@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Pair } from "../types";
+import { formatUnits } from "viem";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -36,3 +37,9 @@ export const pairs: Pair[] = [
     { base: "WBTC", quote: "USDT" },
     { base: "USDC", quote: "USDT" },
 ];
+
+export const convertNumber = (number: bigint, decimals: number) => {
+    return Number(
+        formatUnits(number, decimals).replace(/\.(?=[^.]*$)/, "")
+    ).toFixed(decimals);
+};

@@ -6,19 +6,20 @@ import { Input } from "./ui/input";
 // context
 import { useMangrove } from "../contexts/mangrove";
 // viem
-import { formatUnits, parseUnits } from "viem";
-// lucide-react
-import { Loader2 } from "lucide-react";
-// notistack
-import { enqueueSnackbar } from "notistack";
-// utils
-import tokenList from "../utils/tokens/mangrove-tokens.json";
 import {
     erc20ABI,
     useContractRead,
     useContractWrite,
     useWaitForTransaction,
 } from "wagmi";
+import { parseUnits } from "viem";
+// lucide-react
+import { Loader2 } from "lucide-react";
+// notistack
+import { enqueueSnackbar } from "notistack";
+// utils
+import tokenList from "../utils/tokens/mangrove-tokens.json";
+import { convertNumber } from "../utils/utils";
 
 const Buy = () => {
     const { mangrove, pair, quoteBalance, refreshBalances } = useMangrove();
@@ -116,7 +117,7 @@ const Buy = () => {
 
     const handleSend = async (amount: string) => {
         try {
-            if (!mangrove || !amount || !quoteDecimals)
+            if (!mangrove || !amount || !baseDecimals)
                 throw new Error("Mangrove is not defined");
 
             setGives(amount);
@@ -127,14 +128,7 @@ const Buy = () => {
                 what: "quote",
             });
 
-            setWants(
-                Number(
-                    formatUnits(
-                        estimated.estimatedVolume,
-                        quoteDecimals
-                    ).replace(/\.(?=[^.]*$)/, "")
-                ).toFixed(quoteDecimals)
-            );
+            setWants(convertNumber(estimated.estimatedVolume, baseDecimals));
         } catch (error) {
             enqueueSnackbar("Could not estimate volume", { variant: "error" });
         }
@@ -153,14 +147,7 @@ const Buy = () => {
                 what: "base",
             });
 
-            setGives(
-                Number(
-                    formatUnits(
-                        estimated.estimatedVolume,
-                        quoteDecimals
-                    ).replace(/\.(?=[^.]*$)/, "")
-                ).toFixed(quoteDecimals)
-            );
+            setGives(convertNumber(estimated.estimatedVolume, quoteDecimals));
         } catch (error) {
             enqueueSnackbar("Could not estimate volume", { variant: "error" });
         }

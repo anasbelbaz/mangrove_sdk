@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 // viem
-import { formatUnits, parseUnits } from "viem";
+import { parseUnits } from "viem";
 // lucide-react
 import { Loader2 } from "lucide-react";
 // notistack
@@ -19,6 +19,7 @@ import {
 } from "wagmi";
 // utils
 import tokenList from "../utils/tokens/mangrove-tokens.json";
+import { convertNumber } from "../utils/utils";
 
 const Sell = () => {
     const { mangrove, pair, baseBalance, refreshBalances } = useMangrove();
@@ -126,14 +127,7 @@ const Sell = () => {
                 what: "base",
             });
 
-            setWants(
-                Number(
-                    formatUnits(
-                        estimated.estimatedVolume,
-                        quoteDecimals
-                    ).replace(/\.(?=[^.]*$)/, "")
-                ).toFixed(quoteDecimals)
-            );
+            setWants(convertNumber(estimated.estimatedVolume, quoteDecimals));
         } catch (error) {
             enqueueSnackbar("Could not estimate volume", { variant: "error" });
         }
@@ -152,14 +146,7 @@ const Sell = () => {
                 what: "quote",
             });
 
-            setGives(
-                Number(
-                    formatUnits(
-                        estimated.estimatedVolume,
-                        baseDecimals
-                    ).replace(/\.(?=[^.]*$)/, "")
-                ).toFixed(baseDecimals)
-            );
+            setGives(convertNumber(estimated.estimatedVolume, baseDecimals));
         } catch (error) {
             enqueueSnackbar("Could not estimate volume", { variant: "error" });
         }
