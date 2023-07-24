@@ -9,11 +9,10 @@ import { Label } from "./ui/label";
 import { Loader2 } from "lucide-react";
 // notistack
 import { enqueueSnackbar } from "notistack";
-// viewm
-import { parseUnits } from "viem";
 
 const Post = () => {
-    const { mangrove, pair, balance, decimals } = useMangrove();
+    const { mangrove, pair, baseBalance } = useMangrove();
+
     const [gives, setGives] = React.useState<string>("");
     const [wants, setWants] = React.useState<string>("");
     const [loading, setLoading] = React.useState<boolean>(false);
@@ -26,18 +25,14 @@ const Post = () => {
     const post = async () => {
         try {
             if (!mangrove) throw new Error("Mangrove is not defined");
+
             setLoading(true);
             const market = await mangrove.market(pair);
 
             const directLP = await mangrove.liquidityProvider(market);
 
-            const [formatedWants, formatedGives] = [
-                parseUnits(wants, decimals),
-                parseUnits(gives, decimals),
-            ];
-
             const tx = await market.base.approve(mangrove.address, {
-                amount: formatedGives,
+                amount: gives,
             });
             await tx.wait();
 
@@ -45,13 +40,13 @@ const Post = () => {
 
             // Post a new ask
             await directLP.newAsk({
-                gives: formatedGives,
-                wants: formatedWants,
+                gives,
+                wants,
                 fund,
             });
             setLoading(false);
             resetForm();
-            enqueueSnackbar(`${pair.base} Offer posted with success`, {
+            enqueueSnackbar(`${pair.quote} Offer posted with success`, {
                 variant: "success",
             });
         } catch (error) {
@@ -74,7 +69,7 @@ const Post = () => {
                     <Input
                         type="text"
                         className={`${
-                            Number(gives) > balance
+                            Number(gives) > baseBalance
                                 ? "border-2 border-red-500"
                                 : ""
                         }`}
@@ -101,7 +96,7 @@ const Post = () => {
                             !wants ||
                             !gives ||
                             loading ||
-                            Number(gives) > balance
+                            Number(gives) > baseBalance
                         }
                     >
                         {loading && (

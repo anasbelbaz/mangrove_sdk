@@ -17,21 +17,27 @@ import erc20_abi from "../utils/tokens/abi.json";
 type ContextValues = {
     mangrove: Mangrove | undefined;
     pair: Pair;
-    decimals: number;
-    balance: number;
+    baseDecimals: number;
+    baseBalance: number;
+    quoteDecimals: number;
+    quoteBalance: number;
     isMumbai: boolean;
     checkMarket: () => void;
     setPair: (pair: Pair) => void;
+    refreshBalances: () => void;
 };
 
 const defaultValues: ContextValues = {
     mangrove: undefined,
-    pair: { base: "WETH", quote: "USDC" },
-    decimals: 0,
-    balance: 0,
+    pair: { base: "USDC", quote: "USDT" },
+    baseDecimals: 0,
+    baseBalance: 0,
+    quoteDecimals: 0,
+    quoteBalance: 0,
     isMumbai: false,
     checkMarket: () => null,
     setPair: () => null,
+    refreshBalances: () => null,
 };
 
 const MangroveContext = React.createContext(defaultValues);
@@ -40,7 +46,6 @@ export const useMangrove = () => React.useContext(MangroveContext);
 const MangroveProvider = ({ children }: React.PropsWithChildren) => {
     const { isConnected, address } = useAccount();
     const { chain } = useNetwork();
-
     const [mangrove, setMangrove] = React.useState<Mangrove | undefined>();
     const [isMumbai, setIsMumbai] = React.useState<boolean>(false);
 
@@ -49,18 +54,32 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
         quote: "USDT",
     });
 
-    const tokenAddress = React.useMemo(() => {
-        return tokenList.find((token) => token.symbol === pair.base)?.address;
-    }, [pair]);
+    const tokenAddress = [
+        tokenList.find((token) => token.symbol === pair.base)?.address,
+        tokenList.find((token) => token.symbol === pair.quote)?.address,
+    ];
 
-    const { data: decimals } = useContractRead({
-        address: tokenAddress as `0x`,
+    const { data: baseDecimals } = useContractRead({
+        address: tokenAddress[0] as `0x`,
+        abi: erc20ABI,
+        functionName: "decimals",
+    });
+    const { data: quoteDecimals } = useContractRead({
+        address: tokenAddress[1] as `0x`,
         abi: erc20ABI,
         functionName: "decimals",
     });
 
-    const { data: balance } = useContractRead({
-        address: tokenAddress as `0x`,
+    const { data: baseBalance, refetch: getBaseBalance } = useContractRead({
+        address: tokenAddress[0] as `0x`,
+        abi: erc20_abi,
+        functionName: "balanceOf",
+        args: [address],
+        enabled: !!address,
+    });
+
+    const { data: quoteBalance, refetch: getQuoteBalance } = useContractRead({
+        address: tokenAddress[1] as `0x`,
         abi: erc20_abi,
         functionName: "balanceOf",
         args: [address],
@@ -105,6 +124,11 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
         }
     };
 
+    const refreshBalances = async () => {
+        getBaseBalance();
+        getQuoteBalance();
+    };
+
     React.useEffect(() => {
         isConnected && checkNetwork();
         isConnected && signer?.provider && initMangrove();
@@ -113,14 +137,26 @@ const MangroveProvider = ({ children }: React.PropsWithChildren) => {
     return (
         <MangroveContext.Provider
             value={{
+                refreshBalances,
                 isMumbai,
+                baseDecimals: Number(quoteDecimals),
+                baseBalance: baseBalance
+                    ? Number(
+                          formatUnits(baseBalance as bigint, baseDecimals || 0)
+                      )
+                    : 0,
+                quoteDecimals: Number(quoteDecimals),
+                quoteBalance: quoteBalance
+                    ? Number(
+                          formatUnits(
+                              quoteBalance as bigint,
+                              quoteDecimals || 0
+                          )
+                      )
+                    : 0,
                 pair,
                 setPair,
                 mangrove,
-                decimals: decimals ? decimals : 0,
-                balance: balance
-                    ? Number(formatUnits(balance as bigint, decimals || 0))
-                    : 0,
                 checkMarket,
             }}
         >

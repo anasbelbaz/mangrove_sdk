@@ -11,9 +11,33 @@ import { formatUnits, parseUnits } from "viem";
 import { Loader2 } from "lucide-react";
 // notistack
 import { enqueueSnackbar } from "notistack";
+import {
+    erc20ABI,
+    useContractRead,
+    useContractWrite,
+    useWaitForTransaction,
+} from "wagmi";
+// utils
+import tokenList from "../utils/tokens/mangrove-tokens.json";
 
 const Sell = () => {
-    const { mangrove, pair, balance, decimals } = useMangrove();
+    const { mangrove, pair, baseBalance, refreshBalances } = useMangrove();
+
+    const tokenAddress = [
+        tokenList.find((token) => token.symbol === pair.base)?.address,
+        tokenList.find((token) => token.symbol === pair.quote)?.address,
+    ];
+    const { data: baseDecimals } = useContractRead({
+        address: tokenAddress[0] as `0x`,
+        abi: erc20ABI,
+        functionName: "decimals",
+    });
+    const { data: quoteDecimals } = useContractRead({
+        address: tokenAddress[1] as `0x`,
+        abi: erc20ABI,
+        functionName: "decimals",
+    });
+
     const [gives, setGives] = React.useState<string>("");
     const [wants, setWants] = React.useState<string>("");
     const [loading, setLoading] = React.useState<boolean>(false);
@@ -23,25 +47,64 @@ const Sell = () => {
         setWants("");
     };
 
+    const { data: approveResponse, write } = useContractWrite({
+        address: tokenAddress[0] as `0x`,
+        abi: erc20ABI,
+        functionName: "approve",
+        onError() {
+            setLoading(false);
+            enqueueSnackbar("Approve failed", { variant: "error" });
+        },
+    });
+
+    useWaitForTransaction({
+        hash: approveResponse?.hash,
+        onSettled(d, error) {
+            if (error) {
+                enqueueSnackbar(error.message, { variant: "error" });
+            } else if (d) {
+                enqueueSnackbar(`Tokens approved successfully`, {
+                    variant: "success",
+                });
+                //note: temporary timeout
+                setTimeout(() => {
+                    sell();
+                }, 5000);
+            }
+        },
+    });
+
+    const setApproval = async () => {
+        if (!mangrove || !baseDecimals)
+            throw new Error("Mangrove is not defined");
+
+        setLoading(true);
+        write?.({
+            args: [
+                "0xd1805f6Fe12aFF69D4264aE3e49ef320895e2D8b",
+                parseUnits(gives, baseDecimals),
+            ],
+        });
+    };
+
     const sell = async () => {
         try {
             if (!mangrove) throw new Error("Mangrove is not defined");
+
             setLoading(true);
             const market = await mangrove.market(pair);
-            const [formatedWants, formatedGives] = [
-                parseUnits(wants, decimals),
-                parseUnits(gives, decimals),
-            ];
 
-            const buyPromises = await market.sell({
-                wants: formatedWants,
-                gives: formatedGives,
-                slippage: 2,
+            const sellPromise = await market.sell({
+                wants,
+                gives,
+                slippage: 2, //TODO@Anas: add slippage input in order to dynamise its value
             });
-            await buyPromises.result;
+            await sellPromise.result;
+
             setLoading(false);
             resetForm();
-            enqueueSnackbar(`${pair.base} sold with success`, {
+            refreshBalances();
+            enqueueSnackbar(`${pair.base} market order placed with success`, {
                 variant: "success",
             });
         } catch (error) {
@@ -52,7 +115,7 @@ const Sell = () => {
 
     const handleSend = async (amount: string) => {
         try {
-            if (!amount || !decimals) return;
+            if (!amount || !quoteDecimals) return;
             if (!mangrove) throw new Error("Mangrove is not defined");
 
             setGives(amount);
@@ -60,11 +123,16 @@ const Sell = () => {
             const market = await mangrove.market(pair);
             const estimated = await market.estimateVolumeToReceive({
                 given: amount,
-                what: "quote",
+                what: "base",
             });
 
             setWants(
-                formatUnits(estimated.estimatedVolume as bigint, decimals)
+                Number(
+                    formatUnits(
+                        estimated.estimatedVolume,
+                        quoteDecimals
+                    ).replace(/\.(?=[^.]*$)/, "")
+                ).toFixed(quoteDecimals)
             );
         } catch (error) {
             enqueueSnackbar("Could not estimate volume", { variant: "error" });
@@ -73,7 +141,7 @@ const Sell = () => {
 
     const handleReceive = async (amount: string) => {
         try {
-            if (!amount || !decimals) return;
+            if (!amount || !baseDecimals) return;
             if (!mangrove) throw new Error("Mangrove is not defined");
 
             setWants(amount);
@@ -81,11 +149,16 @@ const Sell = () => {
 
             const estimated = await market.estimateVolumeToSpend({
                 given: amount,
-                what: "base",
+                what: "quote",
             });
 
             setGives(
-                formatUnits(estimated.estimatedVolume as bigint, decimals)
+                Number(
+                    formatUnits(
+                        estimated.estimatedVolume,
+                        baseDecimals
+                    ).replace(/\.(?=[^.]*$)/, "")
+                ).toFixed(baseDecimals)
             );
         } catch (error) {
             enqueueSnackbar("Could not estimate volume", { variant: "error" });
@@ -104,7 +177,9 @@ const Sell = () => {
                 </Label>
                 <Input
                     className={`${
-                        Number(gives) > balance ? "border-2 border-red-500" : ""
+                        Number(gives) > baseBalance
+                            ? "border-2 border-red-500"
+                            : ""
                     }`}
                     type="text"
                     id="amount-given"
@@ -128,9 +203,12 @@ const Sell = () => {
 
             <div className="flex flex-col md:w-auto mt-4 md:mt-0 w-full">
                 <Button
-                    onClick={sell}
+                    onClick={setApproval}
                     disabled={
-                        !wants || !gives || loading || Number(gives) > balance
+                        !wants ||
+                        !gives ||
+                        loading ||
+                        Number(gives) > baseBalance
                     }
                 >
                     {loading && (
