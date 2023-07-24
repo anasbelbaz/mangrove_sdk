@@ -100,6 +100,7 @@ const Post = () => {
                             aria-label="amount-given"
                             onChange={(e) => {
                                 if (
+                                    e.currentTarget.value &&
                                     !/^\d+(\.\d*)?$/.test(e.currentTarget.value)
                                 )
                                     return;
@@ -133,6 +134,7 @@ const Post = () => {
                             aria-label="amount-wanted"
                             onChange={(e) => {
                                 if (
+                                    e.currentTarget.value &&
                                     !/^\d+(\.\d*)?$/.test(e.currentTarget.value)
                                 )
                                     return;
