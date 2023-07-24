@@ -16,10 +16,12 @@ const Post = () => {
     const [gives, setGives] = React.useState<string>("");
     const [wants, setWants] = React.useState<string>("");
     const [loading, setLoading] = React.useState<boolean>(false);
+    const [steps, setSteps] = React.useState<number>(1);
 
     const resetForm = () => {
         setGives("");
         setWants("");
+        setSteps(1);
     };
 
     const post = async () => {
@@ -35,6 +37,11 @@ const Post = () => {
                 amount: gives,
             });
             await tx.wait();
+
+            enqueueSnackbar(`Tokens approved successfully`, {
+                variant: "success",
+            });
+            setSteps(2);
 
             const fund = await directLP.computeAskProvision();
 
@@ -114,9 +121,16 @@ const Post = () => {
                         }
                     >
                         {loading && (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <>
+                                <span className="text-xs z-1000 mr-2">
+                                    {steps === 1 ? `1/2` : "2/2"}
+                                </span>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            </>
                         )}
-                        Post
+                        <span className="caption">
+                            {steps === 1 ? `Approve` : "Post"}
+                        </span>
                     </Button>
                 </div>
             </div>

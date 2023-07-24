@@ -2,13 +2,7 @@ import React from "react";
 // mangrove
 import { Mangrove } from "@mangrovedao/mangrove.js";
 // wagmi
-import {
-    erc20ABI,
-    useAccount,
-    useContractRead,
-    useContractReads,
-    useNetwork,
-} from "wagmi";
+import { erc20ABI, useAccount, useContractReads, useNetwork } from "wagmi";
 import { polygonMumbai } from "wagmi/chains";
 // viewm
 import { formatUnits } from "viem";
@@ -17,8 +11,6 @@ import { useEthersSigner } from "../hooks/adapter";
 // types
 import { Pair } from "../types";
 // utils
-import tokenList from "../utils/tokens/mangrove-tokens.json";
-import erc20_abi from "../utils/tokens/abi.json";
 import { tokenAddress } from "../utils/utils";
 
 type ContextValues = {

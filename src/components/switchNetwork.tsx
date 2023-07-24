@@ -1,4 +1,8 @@
+// wagmi
 import { useSwitchNetwork } from "wagmi";
+//viem
+import { polygonMumbai } from "wagmi/chains";
+// components
 import { Button } from "./ui/button";
 import {
     Dialog,
@@ -7,7 +11,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from "./ui/dialog";
-import { polygonMumbai } from "wagmi/chains";
 
 const SwitchNetwork = () => {
     const { switchNetwork } = useSwitchNetwork();

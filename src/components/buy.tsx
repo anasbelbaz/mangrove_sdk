@@ -28,10 +28,12 @@ const Buy = () => {
     const [gives, setGives] = React.useState<string>("");
     const [wants, setWants] = React.useState<string>("");
     const [loading, setLoading] = React.useState<boolean>(false);
+    const [steps, setSteps] = React.useState<number>(1);
 
     const resetForm = () => {
         setGives("");
         setWants("");
+        setSteps(1);
     };
 
     const { data: approveResponse, write } = useContractWrite({
@@ -53,6 +55,7 @@ const Buy = () => {
                 enqueueSnackbar(`Tokens approved successfully`, {
                     variant: "success",
                 });
+                setSteps(2);
                 //note: temporary timeout
                 setTimeout(() => {
                     buy();
@@ -194,9 +197,16 @@ const Buy = () => {
                     }
                 >
                     {loading && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <>
+                            <span className="text-xs z-1000 mr-2">
+                                {steps === 1 ? `1/2` : "2/2"}
+                            </span>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        </>
                     )}
-                    Buy
+                    <span className="caption">
+                        {steps === 1 ? `Approve` : "Buy"}
+                    </span>
                 </Button>
             </div>
         </div>

@@ -1,9 +1,16 @@
 // shadcn
 import { Card } from "../../components/ui/card";
-// components
-import { Navbar, MintFaucet, Buy, Sell, Post, Pairs } from "../../components";
 import { Button } from "../../components/ui/button";
-import SwitchNetwork from "../../components/switchNetwork";
+// components
+import {
+    Navbar,
+    MintFaucet,
+    Buy,
+    Sell,
+    Post,
+    Pairs,
+    SwitchNetwork,
+} from "../../components";
 // wagmi
 import { useAccount } from "wagmi";
 // web3modal
