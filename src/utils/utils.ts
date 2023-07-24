@@ -38,6 +38,7 @@ export const pairs: Pair[] = [
     { base: "USDC", quote: "USDT" },
 ];
 
+//note: temporary fix
 export const convertNumber = (number: bigint, decimals: number) => {
     return Number(
         formatUnits(number, decimals).replace(/\.(?=[^.]*$)/, "")
