@@ -237,17 +237,17 @@ const Buy = () => {
                         Number(gives) > quoteBalance
                     }
                 >
-                    {loading && (
-                        <>
-                            <span className="text-xs z-1000 mr-2">
-                                {steps === 1 ? `1/2` : "2/2"}
-                            </span>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        </>
-                    )}
                     <span className="caption">
                         {steps === 1 ? `Approve` : "Buy"}
                     </span>
+                    {loading && (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin ml-2" />
+                            <span className="text-xs z-1000 mr-2">
+                                {steps === 1 ? `1/2` : "2/2"}
+                            </span>
+                        </>
+                    )}
                 </Button>
             </div>
         </div>
