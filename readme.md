@@ -2,7 +2,9 @@
 
 In the project directory, you can run:
 
-### `yarn dev`
+### `yarn` to install dependencies
+
+### `yarn dev` to run local server
 
 Runs the app in the development mode.\
 Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
