@@ -30,6 +30,7 @@ const Home = () => {
             <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm flex-col">
                 <Navbar />
                 <Card className="mx-auto mt-40 p-10">
+                    <h1>Mangrove Faucet</h1>
                     <MintFaucet />
                 </Card>
                 <Card className="mx-auto mt-10 p-10">

@@ -124,15 +124,6 @@ const Sell = () => {
 
     const handleSend = async (amount: string) => {
         try {
-            if (!amount) {
-                resetForm();
-                return;
-            }
-
-            if (amount && !/^\d+(\.\d*)?$/.test(amount)) {
-                return;
-            }
-
             if (!mangrove || !quoteDecimals)
                 throw new Error("An error occured");
 
@@ -152,15 +143,6 @@ const Sell = () => {
 
     const handleReceive = async (amount: string) => {
         try {
-            if (amount && !/^\d+(\.\d*)?$/.test(amount)) {
-                return;
-            }
-
-            if (!amount) {
-                resetForm();
-                return;
-            }
-
             if (!mangrove || !baseDecimals) throw new Error("An error occured");
 
             setWants(amount);
@@ -198,7 +180,17 @@ const Sell = () => {
                         id="amount-given"
                         value={gives}
                         aria-label="amount-given"
-                        onChange={(e) => handleSend(e.currentTarget.value)}
+                        onChange={(e) => {
+                            const amount = e.currentTarget.value;
+                            if (!amount) {
+                                resetForm();
+                                return;
+                            }
+                            if (amount && !/^\d+(\.\d*)?$/.test(amount)) {
+                                return;
+                            }
+                            handleSend(e.currentTarget.value);
+                        }}
                     />
                     <span
                         className={`text-xs mt-2 text-gray-500 ${
@@ -223,7 +215,17 @@ const Sell = () => {
                         type="text"
                         value={wants}
                         aria-label="amount-wanted"
-                        onChange={(e) => handleReceive(e.currentTarget.value)}
+                        onChange={(e) => {
+                            const amount = e.currentTarget.value;
+                            if (!amount) {
+                                resetForm();
+                                return;
+                            }
+                            if (amount && !/^\d+(\.\d*)?$/.test(amount)) {
+                                return;
+                            }
+                            handleReceive(e.currentTarget.value);
+                        }}
                     />
                     <span className=" text-xs mt-2 text-gray-500">
                         {wantsLiveBalance(

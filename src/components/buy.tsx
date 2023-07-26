@@ -125,21 +125,16 @@ const Buy = () => {
 
     const handleSend = async (amount: string) => {
         try {
-            if (!amount) {
-                resetForm();
-                return;
-            }
-            if (amount && !/^\d+(\.\d*)?$/.test(amount)) {
-                return;
-            }
             if (!mangrove || !baseDecimals) throw new Error("An error occured");
 
             setGives(amount);
+
             const market = await mangrove.market(pair);
             const estimated = await market.estimateVolumeToReceive({
                 given: amount,
                 what: "quote",
             });
+
             setWants(convertNumber(estimated.estimatedVolume, baseDecimals));
         } catch (error) {
             enqueueSnackbar("Could not estimate volume", { variant: "error" });
@@ -148,17 +143,10 @@ const Buy = () => {
 
     const handleBuy = async (amount: string) => {
         try {
-            if (!amount) {
-                resetForm();
-                return;
-            }
-            if (amount && !/^\d+(\.\d*)?$/.test(amount)) {
-                return;
-            }
-
             if (!mangrove || !baseDecimals) throw new Error("An error occured");
 
             setWants(amount);
+
             const market = await mangrove.market(pair);
             const estimated = await market.estimateVolumeToSpend({
                 given: amount,
@@ -186,7 +174,18 @@ const Buy = () => {
                         type="text"
                         value={wants}
                         aria-label="amount-wanted"
-                        onChange={(e) => handleBuy(e.currentTarget.value)}
+                        onChange={(e) => {
+                            const amount = e.currentTarget.value;
+                            if (!amount) {
+                                resetForm();
+                                return;
+                            }
+                            if (amount && !/^\d+(\.\d*)?$/.test(amount)) {
+                                return;
+                            }
+
+                            handleBuy(amount);
+                        }}
                     />
 
                     <span className={`text-xs mt-2 text-gray-500`}>
@@ -212,7 +211,17 @@ const Buy = () => {
                         type="text"
                         value={gives}
                         aria-label="amount-given"
-                        onChange={(e) => handleSend(e.currentTarget.value)}
+                        onChange={(e) => {
+                            const amount = e.currentTarget.value;
+                            if (!amount) {
+                                resetForm();
+                                return;
+                            }
+                            if (amount && !/^\d+(\.\d*)?$/.test(amount)) {
+                                return;
+                            }
+                            handleSend(e.currentTarget.value);
+                        }}
                     />
                     <span
                         className={`text-xs mt-2 text-gray-500 ${
